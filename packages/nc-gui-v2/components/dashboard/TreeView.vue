@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import draggable from 'vuedraggable'
 import { computed } from '@vue/reactivity'
-import { onMounted } from '@vue/runtime-core'
 import { Modal } from 'ant-design-vue'
 import { UITypes } from 'nocodb-sdk'
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import Sortable from 'sortablejs'
+// import Sortable from "sortablejs";
 import { useToast } from 'vue-toastification'
 import { $computed } from 'vue/macros'
 import { useNuxtApp, useRoute } from '#app'
@@ -41,46 +41,46 @@ const showTableList = ref(true)
 const tableCreateDlg = ref(false)
 const tableDeleteDlg = ref(false)
 
-onMounted(() => {
-  setTimeout(() => {
-    const el = document.querySelector('.sortable-list') // Must get this DomElement,
-    Sortable.create(el, {
-      handle: '.nc-drag-icon',
-      onChange: async (evt) => {
-        const { newIndex = 0, oldIndex = 0 } = evt
-
-        const itemEl = evt.item as HTMLLIElement
-        const item = tablesById[itemEl.dataset.id as string]
-
-        // get the html collection of all list items
-        const children: HTMLCollection = evt.to.children
-
-        // get items before and after the moved item
-        const itemBeforeEl = children[newIndex - 1] as HTMLLIElement
-        const itemAfterEl = children[newIndex + 1] as HTMLLIElement
-
-        // get items meta of before and after the moved item
-        const itemBefore = itemBeforeEl && tablesById[itemBeforeEl.dataset.id as string]
-        const itemAfter = itemAfterEl && tablesById[itemAfterEl.dataset.id as string]
-
-        // set new order value based on the new order of the items
-        if (children.length - 1 === evt.newIndex) {
-          item.order = (itemBefore.order as number) + 1
-        } else if (newIndex === 0) {
-          item.order = (itemAfter.order as number) / 2
-        } else {
-          item.order = ((itemBefore.order as number) + (itemAfter.order as number)) / 2
-        }
-
-        // update the item order
-        await $api.dbTable.reorder(item.id as string, {
-          order: item.order as any,
-        })
-      },
-      animation: 150,
-    })
-  }, 1000)
-})
+// onMounted(() => {
+//   setTimeout(() => {
+//     const el = document.querySelector(".sortable-list"); // Must get this DomElement,
+//     Sortable.create(el, {
+//       handle: ".nc-drag-icon",
+//       onChange: async (evt) => {
+//         const { newIndex = 0, oldIndex = 0 } = evt;
+//
+//         const itemEl = evt.item as HTMLLIElement;
+//         const item = tablesById[itemEl.dataset.id as string];
+//
+//         // get the html collection of all list items
+//         const children: HTMLCollection = evt.to.children;
+//
+//         // get items before and after the moved item
+//         const itemBeforeEl = children[newIndex - 1] as HTMLLIElement;
+//         const itemAfterEl = children[newIndex + 1] as HTMLLIElement;
+//
+//         // get items meta of before and after the moved item
+//         const itemBefore = itemBeforeEl && tablesById[itemBeforeEl.dataset.id as string];
+//         const itemAfter = itemAfterEl && tablesById[itemAfterEl.dataset.id as string];
+//
+//         // set new order value based on the new order of the items
+//         if (children.length - 1 === evt.newIndex) {
+//           item.order = (itemBefore.order as number) + 1;
+//         } else if (newIndex === 0) {
+//           item.order = (itemAfter.order as number) / 2;
+//         } else {
+//           item.order = ((itemBefore.order as number) + (itemAfter.order as number)) / 2;
+//         }
+//
+//         // update the item order
+//         await $api.dbTable.reorder(item.id as string, {
+//           order: item.order as any
+//         });
+//       },
+//       animation: 150
+//     });
+//   }, 1000);
+// });
 
 const icon = (table: TableType) => {
   if (table.type === 'table') {
@@ -171,6 +171,28 @@ const showRenameTableDlg = (table: TableType) => {
   renameTableMeta.value = table
   renameTableDlg.value = true
 }
+
+const onOrderChange = async (evt) => {
+  const { newIndex = 0, oldIndex = 0, element: item } = evt.moved
+
+  // get items meta of before and after the moved item
+  const itemBefore = tables.value[newIndex - 1]
+  const itemAfter = tables.value[newIndex + 1]
+
+  // set new order value based on the new order of the items
+  if (tables.value.length - 1 === newIndex) {
+    item.order = (itemBefore.order as number) + 1
+  } else if (newIndex === 0) {
+    item.order = (itemAfter.order as number) / 2
+  } else {
+    item.order = ((itemBefore.order as number) + (itemAfter.order as number)) / 2
+  }
+
+  // update the item order
+  await $api.dbTable.reorder(item.id as string, {
+    order: item.order as any,
+  })
+}
 </script>
 
 <template>
@@ -203,35 +225,49 @@ const showRenameTableDlg = (table: TableType) => {
         </div>
         <div class="flex-1">
           <div class="transition-height duration-200 overflow-hidden" :class="{ 'h-100': showTableList, 'h-0': !showTableList }">
-            <a-menu class="border-none sortable-list">
-              <a-menu-item
-                v-for="table in filteredTables"
-                :key="table.id"
-                v-t="['a:table:open']"
-                class="!pl-1 py-1 !h-[28px] !my-0 text-sm pointer group"
-                :data-order="table.order"
-                :data-id="table.id"
-                @click="addTab({ type: 'table', title: table.title, id: table.id })"
-              >
-                <div class="flex align-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
-                  <MdiDrag class="transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move" />
-                  <component :is="icon(table)" class="text-[10px] text-gray-500" />
+            <!--            <a-menu class="border-none sortable-list"> -->
+            <draggable
+              v-model="tables"
+              item-key="id"
+              tag="a-menu"
+              :component-data="{ class: 'border-none sortable-list' }"
+              @change="onOrderChange"
+            >
+              <template #item="{ element: table }">
+                <a-menu-item
+                  :key="table.id"
+                  :class="{ hidden: !filteredTables?.includes(table) }"
+                  class="!pl-1 py-1 !h-[28px] !my-0 text-sm pointer group"
+                  :data-order="table.order"
+                  :data-id="table.id"
+                  @click="addTab({ type: 'table', title: table.title, id: table.id })"
+                >
+                  <div class="flex align-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
+                    <MdiDrag
+                      class="transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move"
+                    />
+                    <component :is="icon(table)" class="text-[10px] text-gray-500" />
 
-                  <span class="text-xs flex-1 ml-2">{{ table.title }}</span>
-                  <a-dropdown :trigger="['click']" @click.stop>
-                    <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
-                    <template #overlay>
-                      <a-menu class="cursor-pointer">
-                        <a-menu-item v-t="['c:table:rename:navdraw:options']" class="!text-xs" @click="showRenameTableDlg(table)">
-                          Rename</a-menu-item
-                        >
-                        <a-menu-item class="!text-xs" @click="deleteTable(table)"> Delete</a-menu-item>
-                      </a-menu>
-                    </template>
-                  </a-dropdown>
-                </div>
-              </a-menu-item>
-            </a-menu>
+                    <span class="text-xs flex-1 ml-2">{{ table.title }}</span>
+                    <a-dropdown :trigger="['click']" @click.stop>
+                      <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
+                      <template #overlay>
+                        <a-menu class="cursor-pointer">
+                          <a-menu-item
+                            class="!text-xs"
+                            @click="showRenameTableDlg(table)"
+                          >
+                            Rename
+                          </a-menu-item>
+                          <a-menu-item class="!text-xs" @click="deleteTable(table)"> Delete</a-menu-item>
+                        </a-menu>
+                      </template>
+                    </a-dropdown>
+                  </div>
+                </a-menu-item>
+              </template>
+            </draggable>
+            <!--            </a-menu> -->
           </div>
         </div>
       </div>
@@ -240,20 +276,14 @@ const showRenameTableDlg = (table: TableType) => {
         <a-menu class="cursor-pointer">
           <template v-if="contextMenuTarget.type === 'table'">
             <a-menu-item
-              v-t="['c:table:rename:navdraw:right-click']"
               class="!text-xs"
               @click="showRenameTableDlg(contextMenuTarget.value)"
-            >
-              {{ $t('general.rename') }}
+              >Table Rename
             </a-menu-item>
-            <a-menu-item class="!text-xs" @click="deleteTable(contextMenuTarget.value)">
-              {{ $t('general.delete') }}
-            </a-menu-item>
+            <a-menu-item class="!text-xs" @click="deleteTable(contextMenuTarget.value)">Table Delete</a-menu-item>
           </template>
           <template v-else>
-            <a-menu-item v-t="['a:table:refresh:navdraw']" class="!text-xs" @click="loadTables">
-              {{ $t('general.reload') }}
-            </a-menu-item>
+            <a-menu-item  class="!text-xs" @click="loadTables">Tables Refresh </a-menu-item>
           </template>
         </a-menu>
       </template>
@@ -294,9 +324,5 @@ const showRenameTableDlg = (table: TableType) => {
 
 :deep(.nc-filter-input input::placeholder) {
   @apply !text-xs;
-}
-
-:deep(.ant-dropdown-menu-title-content) {
-  @apply !p-2;
 }
 </style>
