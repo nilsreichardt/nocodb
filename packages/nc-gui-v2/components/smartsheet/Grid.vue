@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
 import { inject, onKeyStroke, provide } from '#imports'
+import { useProvideColumnCreateStore } from '~/composables/useColumnCreateStore'
 import {
   ActiveViewInj,
   ChangePageInj,
@@ -63,6 +64,9 @@ watch(
 defineExpose({
   loadData,
 })
+
+// instantiate column create store
+useProvideColumnCreateStore()
 </script>
 
 <template>
@@ -83,7 +87,7 @@ defineExpose({
                   <MdiPlusIcon class="text-sm" />
                 </div>
                 <template #overlay>
-                  <SmartsheetColumnEdit @click.stop />
+                  <SmartsheetColumnEditOrAdd @click.stop />
                 </template>
               </a-dropdown>
             </th>
@@ -218,6 +222,7 @@ defineExpose({
     position: relative;
     padding: 0 5px !important;
     min-width: 200px;
+
     & > * {
       @apply flex align-center h-auto;
     }
