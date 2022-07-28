@@ -49,6 +49,15 @@ const Icon = computed(() => {
       return MdiAccountGroupIcon
   }
 })
+
+const changeLockType = (type) => {
+  $e('a:grid:lockmenu', { lockType: type })
+  if (type === 'personal') {
+    return toast.info('Coming soon')
+  }
+  // $emit('input', type);
+  toast.success(`Successfully Switched to ${type} view`)
+}
 </script>
 
 <script lang="ts">
@@ -59,14 +68,13 @@ export default {
 
 <template>
   <a-dropdown max-width="350" :trigger="['click']">
-    <Icon class="mx-1 nc-view-lock-menu text-grey min-w-4 cursor-pointer"> mdi-lock-outline </Icon>
+    <Icon class="mx-1 nc-view-lock-menu text-grey min-w-4 cursor-pointer"> mdi-lock-outline</Icon>
     <template #overlay>
       <div class="min-w-[350px] max-w-[500px] shadow bg-white">
         <div>
           <div class="nc-menu-item">
             <MdiCheckIcon v-if="!vModel || vModel === LockType.Collaborative" />
             <span v-else />
-
             <div>
               <MdiAccountGroupIcon />
               Collaborative view
@@ -101,7 +109,7 @@ export default {
 
 <style scoped>
 .nc-menu-item {
-  @apply grid grid-cols-[30px,auto] gap-2  p-4;
+  @apply grid grid-cols-[30px, auto] gap-2  p-4;
 }
 
 .nc-menu-option > :first-child {
