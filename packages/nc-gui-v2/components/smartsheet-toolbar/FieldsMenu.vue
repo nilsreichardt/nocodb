@@ -37,7 +37,7 @@ const {
   showAll,
   hideAll,
   saveOrUpdate,
-  sortedFields,
+  // sortedFields,
 } = useViewColumns(activeView, meta, false, () => reloadDataHook?.trigger())
 
 watch(
@@ -59,17 +59,20 @@ watch(
 
 const onMove = (event) => {
   // todo : sync with server
-  // if (!sortedFields?.value) return
-  // if (sortedFields?.value.length - 1 === event.moved.newIndex) {
-  //   sortedFields.value[event.moved.newIndex].order = sortedFields.value[event.moved.newIndex - 1].order + 1
-  // } else if (event.moved.newIndex === 0) {
-  //   sortedFields.value[event.moved.newIndex].order = sortedFields.value[1].order / 2
-  // } else {
-  //   sortedFields.value[event.moved.newIndex].order =
-  //     (sortedFields?.value[event.moved.newIndex - 1].order + sortedFields?.value[event.moved.newIndex + 1].order) / 2
-  //   // );
-  // }
-  // saveOrUpdate(sortedFields[event.moved.newIndex], event.moved.newIndex);
+  if (!fields?.value) return
+
+  if (fields.value.length < 2) return
+
+  if (fields?.value.length - 1 === event.moved.newIndex) {
+    fields.value[event.moved.newIndex].order = (fields.value[event.moved.newIndex - 1].order || 1) + 1
+  } else if (event.moved.newIndex === 0) {
+    fields.value[event.moved.newIndex].order = (fields?.value[1].order || 1) / 2
+  } else {
+    fields.value[event.moved.newIndex].order =
+      ((fields?.value[event.moved.newIndex - 1].order || 1) + (fields?.value[event.moved.newIndex + 1].order || 1)) / 2
+    // );
+  }
+  saveOrUpdate(fields.value[event.moved.newIndex], event.moved.newIndex)
   $e('a:fields:reorder')
 }
 </script>
@@ -91,9 +94,9 @@ const onMove = (event) => {
     <template #overlay>
       <div class="pt-0 min-w-[280px] bg-white shadow" @click.stop>
         <div class="nc-fields-list py-1">
-          <Draggable :list="sortedFields" @change="onMove($event)">
+          <Draggable :list="fields" @change="onMove($event)">
             <template #item="{ element: field }">
-              <div :key="field.id" class="px-2 py-1 flex" @click.stop>
+              <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex" @click.stop>
                 <a-checkbox v-model:checked="field.show" class="flex-shrink" @change="saveOrUpdate(field, i)">
                   <span class="text-xs">{{ field.title }}</span>
                 </a-checkbox>
