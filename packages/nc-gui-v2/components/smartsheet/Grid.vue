@@ -66,7 +66,9 @@ defineExpose({
 })
 
 // instantiate column create store
-useProvideColumnCreateStore()
+// watchEffect(() => {
+if (meta) useProvideColumnCreateStore(meta)
+// })
 </script>
 
 <template>
@@ -87,7 +89,7 @@ useProvideColumnCreateStore()
                   <MdiPlusIcon class="text-sm" />
                 </div>
                 <template #overlay>
-                  <SmartsheetColumnEditOrAdd @click.stop @cancel="editColumnDropdown = false" />
+                  <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
                 </template>
               </a-dropdown>
             </th>
