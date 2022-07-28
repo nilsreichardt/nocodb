@@ -59,7 +59,7 @@ export default {
 
 <template>
   <a-dropdown max-width="350" :trigger="['click']">
-    <Icon class="mx-1 nc-view-lock-menu text-grey min-w-4"> mdi-lock-outline </Icon>
+    <Icon class="mx-1 nc-view-lock-menu text-grey min-w-4 cursor-pointer"> mdi-lock-outline </Icon>
     <template #overlay>
       <div class="min-w-[350px] max-w-[500px] shadow bg-white">
         <div>
