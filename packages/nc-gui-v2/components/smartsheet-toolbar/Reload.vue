@@ -5,7 +5,7 @@ const reloadTri = inject(ReloadViewDataHookInj)
 </script>
 
 <template>
-  <MdiReloadIcon class="text-grey" @click="reloadTri.trigger()" />
+  <MdiReloadIcon class="text-grey min-w-4" @click="reloadTri.trigger()" />
 </template>
 
 <style scoped></style>

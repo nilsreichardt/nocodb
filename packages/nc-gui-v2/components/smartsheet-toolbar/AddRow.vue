@@ -4,7 +4,7 @@ const emit = defineEmits(['add-row'])
 </script>
 
 <template>
-  <MdiAddIcon class="text-grey" @click="emit('add-row')" />
+  <MdiAddIcon class="text-grey min-w-4" @click="emit('add-row')" />
 </template>
 
 <style scoped></style>

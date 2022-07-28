@@ -8,7 +8,7 @@ const Icon = computed(() => (navDrawerOpened.value ? MdiDoorOpenIcon : MdiDoorCl
 </script>
 
 <template>
-  <Icon class="text-grey" @click="navDrawerOpened = !navDrawerOpened" />
+  <Icon class="text-grey min-w-4" @click="navDrawerOpened = !navDrawerOpened" />
 </template>
 
 <style scoped></style>
