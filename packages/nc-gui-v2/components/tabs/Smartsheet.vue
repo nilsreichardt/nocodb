@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import type { ColumnType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 import { computed, inject, onMounted, provide, watch, watchEffect } from '#imports'
+import { useProvideSmartsheetStore } from '~/composables/useSmartsheetStore'
 import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/context'
 import useMetas from '~/composables/useMetas'
 
@@ -13,7 +15,7 @@ const fields = ref<ColumnType[]>([])
 
 const tabMeta = inject(TabMetaInj)
 
-const meta = computed(() => metas.value?.[tabMeta?.value?.id as string])
+const meta = computed<TableType>(() => metas.value?.[tabMeta?.value?.id as string])
 
 watchEffect(async () => {
   await getMeta(tabMeta?.value?.id as string)
@@ -21,6 +23,7 @@ watchEffect(async () => {
 
 const reloadEventHook = createEventHook<void>()
 
+// todo: move to store
 provide(MetaInj, meta)
 provide(TabMetaInj, tabMeta)
 provide(ActiveViewInj, activeView)
@@ -28,10 +31,12 @@ provide(IsLockedInj, false)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
 
+useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
+
 watch(
-  () => tabMeta && tabMeta?.id,
+  () => tabMeta?.value?.id,
   async (newVal, oldVal) => {
-    if (newVal !== oldVal) await getMeta(newVal)
+    if (newVal && newVal !== oldVal) await getMeta(newVal)
   },
 )
 </script>
