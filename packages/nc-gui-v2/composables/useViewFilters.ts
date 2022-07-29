@@ -109,7 +109,7 @@ export default function (
       logical_op: 'and',
     })
     const index = filters.value.length - 1
-   await saveOrUpdate(filters.value[index], index)
+    await saveOrUpdate(filters.value[index], index)
   }
 
   return { filters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup }

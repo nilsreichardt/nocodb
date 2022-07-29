@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
-import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
+import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import { useNuxtApp } from '#app'
 import { inject } from '#imports'
 import { comparisonOpList } from '~/utils/filterUtils'

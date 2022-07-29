@@ -69,3 +69,7 @@ html {
 .nc-menu-item {
   @apply cursor-pointer text-xs flex align-center gap-2 p-4 relative after:(content-[''] absolute top-0 left-0  w-full h-full right 0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
 }
+
+.nc-badge {
+  @apply relative after:(absolute top-[-2px] right-[-2px] w-[8px] h-[8px] rounded-full bg-primary content-['']);
+}
