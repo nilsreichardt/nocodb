@@ -3,7 +3,7 @@ import type { ColumnType, FormType, GalleryType, GridType, TableType } from 'noc
 import type { Ref } from 'vue'
 import { useNuxtApp } from '#app'
 
-export default function (
+export function useViewColumns(
   view: Ref<(GridType | FormType | GalleryType) & { id?: string }> | undefined,
   meta: Ref<TableType> | undefined,
   isPublic = false,
