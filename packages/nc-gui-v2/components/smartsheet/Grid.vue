@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
-import { getCurrentInstance, inject, onKeyStroke, onMounted, provide } from '#imports'
+import { getCurrentInstance, inject, onKeyStroke, onMounted, provide, useViewData } from '#imports'
 import useGridViewColumnWidth from '~/composables/useGridViewColumnWidth'
 import {
   ActiveViewInj,
@@ -12,7 +12,6 @@ import {
   PaginationDataInj,
   ReloadViewDataHookInj,
 } from '~/context'
-import useViewData from '~/composables/useViewData'
 
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
@@ -26,7 +25,7 @@ const isPublicView = false
 const selected = reactive<{ row?: number | null; col?: number | null }>({})
 const editEnabled = ref(false)
 
-const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view)
+const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view as any)
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 onMounted(loadGridViewColumns)
 
@@ -52,7 +51,7 @@ onKeyStroke(['Enter'], (e) => {
 })
 
 watch(
-  () => view?.value?.id,
+  () => (view?.value as any)?.id,
   async (n?: string, o?: string) => {
     if (n && n !== o) {
       await loadData()

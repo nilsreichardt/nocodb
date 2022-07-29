@@ -2,7 +2,7 @@
 import { computed, inject } from 'vue'
 import Draggable from 'vuedraggable'
 import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
-import useViewColumns from '~/composables/useViewColumns'
+import { useViewColumns } from '#imports'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 import MdiEyeIcon from '~icons/mdi/eye-off-outline'
 import MdiDragIcon from '~icons/mdi/drag'
@@ -41,7 +41,7 @@ const {
 } = useViewColumns(activeView, meta, false, () => reloadDataHook?.trigger())
 
 watch(
-  () => activeView?.value?.id,
+  () => (activeView?.value as any)?.id,
   async (newVal, oldVal) => {
     if (newVal !== oldVal && meta?.value) {
       await loadViewColumns()
@@ -57,7 +57,7 @@ watch(
   { immediate: true },
 )
 
-const onMove = (event) => {
+const onMove = (event: unknown) => {
   // todo : sync with server
   // if (!sortedFields?.value) return
   // if (sortedFields?.value.length - 1 === event.moved.newIndex) {
