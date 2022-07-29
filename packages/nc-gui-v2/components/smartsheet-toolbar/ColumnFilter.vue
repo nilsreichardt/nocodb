@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { watchEffect } from '@vue/runtime-core'
 import { UITypes } from 'nocodb-sdk'
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
 import Smartsheet from '~/components/tabs/Smartsheet.vue'
@@ -11,6 +12,8 @@ import MdiDeleteIcon from '~icons/mdi/close-box'
 import MdiAddIcon from '~icons/mdi/plus'
 
 const { nested = false, parentId } = defineProps<{ nested?: boolean; parentId?: string }>()
+
+const emit = defineEmits(['update:filters-length'])
 
 const meta = inject(MetaInj)
 const activeView = inject(ActiveViewInj)
@@ -82,6 +85,13 @@ const logicalOps = [
   { value: 'and', text: 'AND' },
   { value: 'or', text: 'OR' },
 ]
+
+watch(
+  () => filters?.value?.length,
+  (length) => {
+    emit('update:filters-length', length ?? 0)
+  },
+)
 </script>
 
 <template>
