@@ -17,7 +17,9 @@ import GenericIcon from '~icons/mdi/square-rounded'
 import AttachmentIcon from '~icons/mdi/image-multiple-outline'
 import URLIcon from '~icons/mdi/link'
 
-const column = inject(ColumnInj)
+const { columnMeta } = defineProps<{ columnMeta?: ColumnType }>()
+
+const column = inject(ColumnInj, columnMeta)
 
 const additionalColMeta = useColumn(column as ColumnType)
 

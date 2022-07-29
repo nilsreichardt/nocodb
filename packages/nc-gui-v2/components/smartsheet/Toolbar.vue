@@ -28,6 +28,4 @@
 .dot {
   @apply w-[3px] h-[3px] bg-gray-300 mx-1 rounded-full;
 }
-
-
 </style>
