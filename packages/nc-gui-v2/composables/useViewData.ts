@@ -1,4 +1,4 @@
-import type { Api, FormType, GalleryType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
 import { useProject } from '#imports'
