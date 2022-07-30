@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { computed } from '@vue/reactivity'
-import { ColumnType, isVirtualCol } from 'nocodb-sdk'
-import { inject, onKeyStroke, onMounted, provide } from '#imports'
+import { isVirtualCol } from 'nocodb-sdk'
+import { inject, onKeyStroke, provide } from '#imports'
+import { useSmartsheetStoreOrThrow } from '~/composables/useSmartsheetStore'
 import {
   ActiveViewInj,
   ChangePageInj,
@@ -25,8 +25,10 @@ const isPublicView = false
 
 const selected = reactive<{ row?: number | null; col?: number | null }>({})
 const editEnabled = ref(false)
+const { sqlUi } = useProject()
+const { xWhere } = useSmartsheetStoreOrThrow()
 
-const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view)
+const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view, xWhere)
 
 provide(IsFormInj, false)
 provide(IsGridInj, true)

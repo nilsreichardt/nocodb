@@ -28,7 +28,7 @@ const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGr
   },
 )
 
-const filterUpdateCondition = (filter, i:number) => {
+const filterUpdateCondition = (filter, i: number) => {
   saveOrUpdate(filter, i)
   $e('a:filter:update', {
     logical: filter.logical_op,
@@ -97,15 +97,16 @@ const applyChanges = async () => {
   // sync()
   // $e('a:filter:apply')
 
-    for (const nestedFilter of nestedFilters?.value || []) {
-      if (nestedFilter.parentId) {
-        await nestedFilter.applyChanges(true);
-      }
+  for (const nestedFilter of nestedFilters?.value || []) {
+    if (nestedFilter.parentId) {
+      await nestedFilter.applyChanges(true)
     }
+  }
 }
 
 defineExpose({
-  applyChanges, parentId
+  applyChanges,
+  parentId,
 })
 </script>
 
