@@ -6,7 +6,7 @@ export default () => {
   const { $state } = useNuxtApp()
   const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
 
-  const isUIAllowed = (permission: keyof typeof rolePermissions[keyof typeof rolePermissions], _skipPreviewAs = false) => {
+  const isUIAllowed = (permission: string, _skipPreviewAs = false) => {
     const user = $state.user
     let userRoles = user?.value?.roles || {}
 
@@ -35,6 +35,7 @@ export default () => {
       return (
         hasRole &&
         (rolePermissions[role as keyof typeof rolePermissions] === '*' ||
+          // @ts-ignore
           rolePermissions[role as keyof typeof rolePermissions]?.[permission])
       )
     })
