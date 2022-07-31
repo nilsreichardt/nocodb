@@ -1,32 +1,13 @@
 <script lang="ts" setup>
-import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'nocodb-sdk'
+import type { FormType, GridType, KanbanType } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
-import { notification } from 'ant-design-vue'
-import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
 import RenameableMenuItem from './RenameableMenuItem.vue'
-import { inject, ref, useApi, useTabs, watch } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
-import type { TabItem } from '~/composables/useTabs'
-import { TabType } from '~/composables/useTabs'
-import { ActiveViewInj, ViewListInj } from '~/context'
+import { useSmartsheetSidebar } from './useSmartsheetSidebar'
+import { onMounted, ref, watch } from '#imports'
 
-interface Emits {
-  (event: 'openModal', data: { type: ViewTypes; title?: string }): void
-  (event: 'deleted'): void
-  (event: 'sorted'): void
-}
-
-const emits = defineEmits<Emits>()
-
-const activeView = inject(ActiveViewInj, ref())
-
-const views = inject<Ref<any[]>>(ViewListInj, ref([]))
-
-const { addTab } = useTabs()
-
-const { api } = useApi()
+const { api, views, loadViews, activeView, deleteModalHook } = useSmartsheetSidebar()!
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -50,19 +31,6 @@ watch(activeView, (nextActiveView) => {
   }
 })
 
-/** validate view title */
-function validate(value?: string) {
-  if (!value || value.trim().length < 0) {
-    return 'View name is required'
-  }
-
-  if (views.value.every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== value)) {
-    return 'View name should be unique'
-  }
-
-  return true
-}
-
 function onSortStart(evt: SortableEvent) {
   evt.stopImmediatePropagation()
   evt.preventDefault()
@@ -82,19 +50,19 @@ async function onSortEnd(evt: SortableEvent) {
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
 
-  const currentItem: Record<string, any> = views.value.find((v) => v.id === evt.item.id)
-  const previousItem: Record<string, any> = previousEl ? views.value.find((v) => v.id === previousEl.id) : {}
-  const nextItem: Record<string, any> = nextEl ? views.value.find((v) => v.id === nextEl.id) : {}
+  const currentItem = views.value.find((v) => v.id === evt.item.id)!
+  const previousItem = previousEl ? views.value.find((v) => v.id === previousEl.id) : {}
+  const nextItem = nextEl ? views.value.find((v) => v.id === nextEl.id) : {}
 
   let nextOrder: number
 
   // set new order value based on the new order of the items
   if (views.value.length - 1 === newIndex) {
-    nextOrder = parseFloat(previousItem.order) + 1
+    nextOrder = parseFloat(previousItem?.order) + 1
   } else if (newIndex === 0) {
-    nextOrder = parseFloat(nextItem.order) / 2
+    nextOrder = parseFloat(nextItem?.order) / 2
   } else {
-    nextOrder = (parseFloat(previousItem.order) + parseFloat(nextItem.order)) / 2
+    nextOrder = (parseFloat(previousItem?.order) + parseFloat(nextItem?.order)) / 2
   }
 
   const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder.toString() : oldIndex.toString()
@@ -120,59 +88,19 @@ const initSortable = (el: HTMLElement) => {
 
 onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
 
-// todo: fix view type, alias is missing for some reason?
-/** Navigate to view and add new tab if necessary */
-function changeView(view: { id: string; alias?: string; title?: string; type: ViewTypes }) {
-  activeView.value = view
-
-  const tabProps: TabItem = {
-    id: view.id,
-    title: (view.alias ?? view.title) || '',
-    type: TabType.VIEW,
+deleteModalHook.on((event) => {
+  if (event.isOpen && event.view) {
+    deleteModalVisible = true
+    toDelete = event.view
+  } else {
+    toDelete = undefined
+    deleteModalVisible = false
   }
-
-  addTab(tabProps)
-}
-
-/** Rename a view */
-async function onRename(view: Record<string, any>) {
-  const valid = validate(view.title)
-
-  if (valid !== true) {
-    notification.error({
-      message: valid,
-      duration: 2,
-    })
-  }
-
-  try {
-    // todo typing issues, order and id do not exist on all members of ViewTypes (Kanban, Gallery, Form, Grid)
-    await api.dbView.update(view.id, {
-      title: view.title,
-      order: view.order,
-    })
-
-    notification.success({
-      message: 'View renamed successfully',
-      duration: 3,
-    })
-  } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-      duration: 3,
-    })
-  }
-}
-
-/** Open delete modal */
-async function onDelete(view: Record<string, any>) {
-  toDelete = view
-  deleteModalVisible = true
-}
+})
 
 /** View was deleted, trigger reload */
-function onDeleted() {
-  emits('deleted')
+async function onDeleted() {
+  await loadViews()
   toDelete = undefined
   deleteModalVisible = false
 }
@@ -187,16 +115,7 @@ function onDeleted() {
     class="flex-1 max-h-[50vh] md:max-h-[200px] lg:max-h-[400px] xl:max-h-[600px] overflow-y-scroll scrollbar-thin-primary"
     :selected-keys="selected"
   >
-    <RenameableMenuItem
-      v-for="view of views"
-      :id="view.id"
-      :key="view.id"
-      :view="view"
-      @change-view="changeView"
-      @open-modal="$emit('openModal', $event)"
-      @delete="onDelete"
-      @rename="onRename"
-    />
+    <RenameableMenuItem v-for="view of views" :id="view.id" :key="view.id" :view="view" />
   </a-menu>
 
   <dlg-view-delete v-model="deleteModalVisible" :view="toDelete" @deleted="onDeleted" />

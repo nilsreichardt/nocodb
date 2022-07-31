@@ -1,21 +1,19 @@
 <script lang="ts" setup>
-import type { ViewTypes } from 'nocodb-sdk'
+import { useSmartsheetSidebar } from './useSmartsheetSidebar'
 import { viewIcons } from '~/utils'
-import { useDebounceFn, useNuxtApp, useVModel } from '#imports'
+import { useDebounceFn, useNuxtApp, useTabs, useVModel } from '#imports'
 import MdiTrashCan from '~icons/mdi/trash-can'
 import MdiContentCopy from '~icons/mdi/content-copy'
 import MdiDrag from '~icons/mdi/drag-vertical'
+import type { TabItem } from '~/composables/useTabs'
+import { TabType } from '~/composables/useTabs'
 
 interface Props {
   view: Record<string, any>
 }
 
 interface Emits {
-  (event: 'openModal', data: { type: ViewTypes; title?: string }): void
   (event: 'update:view', data: Record<string, any>): void
-  (event: 'changeView', view: Record<string, any>): void
-  (event: 'rename', view: Record<string, any>): void
-  (event: 'delete', view: Record<string, any>): void
 }
 
 const props = defineProps<Props>()
@@ -23,6 +21,10 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'view', emits)
+
+const { addTab } = useTabs()
+
+const { activeView, rename, modalHook, deleteModalHook } = useSmartsheetSidebar()!
 
 const { $e } = useNuxtApp()
 
@@ -39,8 +41,22 @@ let originalTitle = $ref<string | undefined>()
 const onClick = useDebounceFn(() => {
   if (isEditing || isStopped) return
 
-  emits('changeView', vModel.value)
+  changeView(vModel.value)
 }, 250)
+
+// todo: fix view type, alias is missing for some reason?
+/** Navigate to view and add new tab if necessary */
+function changeView(view: Record<string, any>) {
+  activeView.value = view
+
+  const tabProps: TabItem = {
+    id: view.id,
+    title: (view.alias ?? view.title) || '',
+    type: TabType.VIEW,
+  }
+
+  addTab(tabProps)
+}
 
 /** Enable editing view name on dbl click */
 function onDblClick() {
@@ -88,14 +104,14 @@ function focusInput(el: HTMLInputElement) {
 /** Duplicate a view */
 // todo: This is not really a duplication, maybe we need to implement a true duplication?
 function onDuplicate() {
-  emits('openModal', { type: vModel.value.type, title: vModel.value.title })
+  modalHook.trigger({ isOpen: true, data: { type: vModel.value.type, title: vModel.value.title } })
 
   $e('c:view:copy', { view: vModel.value.type })
 }
 
 /** Delete a view */
 async function onDelete() {
-  emits('delete', vModel.value)
+  deleteModalHook.trigger({ isOpen: true, view: vModel.value })
 }
 
 /** Rename a view */
@@ -107,7 +123,7 @@ async function onRename() {
     return
   }
 
-  emits('rename', vModel.value)
+  rename(vModel.value)
 
   onStopEdit()
 }

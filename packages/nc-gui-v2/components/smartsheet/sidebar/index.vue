@@ -1,19 +1,10 @@
 <script setup lang="ts">
-import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'nocodb-sdk'
+import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
 import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
-import { inject, provide, ref, useApi, useViews, watch } from '#imports'
-import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
-
-const meta = inject(MetaInj, ref())
-
-const activeView = inject(ActiveViewInj, ref())
-
-const { views, loadViews } = useViews(meta)
-
-const { api } = useApi()
-
-provide(ViewListInj, views)
+import { useSmartsheetSidebar } from './useSmartsheetSidebar'
+import { inject, ref } from '#imports'
 
 /** Sidebar visible */
 const drawerOpen = inject('navDrawerOpen', ref(false))
@@ -27,40 +18,35 @@ let viewCreateTitle = $ref('')
 /** is view creation modal open */
 let modalOpen = $ref(false)
 
-/** Watch current views and on change set the next active view */
-watch(
-  views,
-  (nextViews) => {
-    if (nextViews.length) {
-      activeView.value = nextViews[0]
-    }
-  },
-  { immediate: true },
-)
+const { views, activeView, modalHook } = useSmartsheetSidebar()!
 
-/** Open view creation modal */
-function openModal({ type, title = '' }: { type: ViewTypes; title: string }) {
-  modalOpen = true
-  viewCreateType = type
-  viewCreateTitle = title
-}
+modalHook.on((event) => {
+  if (event.isOpen && event.data) {
+    modalOpen = true
+    viewCreateType = event.data.type
+    viewCreateTitle = event.data.title
+  } else {
+    viewCreateType = ViewTypes.GRID
+    viewCreateTitle = ''
+    modalOpen = false
+  }
+})
 
-/** Handle view creation */
-function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
+function onCreated(view: GridType | FormType | KanbanType | GalleryType) {
   views.value.push(view)
   activeView.value = view
-  modalOpen = false
+  modalHook.trigger({ isOpen: false })
 }
 </script>
 
 <template>
   <a-layout-sider theme="light" class="shadow" :width="drawerOpen ? 0 : 250">
     <div class="flex flex-col h-full">
-      <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
-      <MenuBottom @open-modal="openModal" />
+      <MenuTop />
+      <MenuBottom />
     </div>
 
-    <dlg-view-create v-if="views" v-model="modalOpen" :title="viewCreateTitle" :type="viewCreateType" @created="onCreate" />
+    <dlg-view-create v-if="views" v-model="modalOpen" :title="viewCreateTitle" :type="viewCreateType" @created="onCreated" />
   </a-layout-sider>
 </template>
 

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { ColumnType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { computed, inject, onMounted, provide, watch, watchEffect } from '#imports'
+import { computed, inject, provide, watch, watchEffect } from '#imports'
 import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/context'
 import useMetas from '~/composables/useMetas'
+import { useProvideSmartsheetSidebar } from '~/components/smartsheet/sidebar/useSmartsheetSidebar'
 
 const { getMeta, metas } = useMetas()
 
@@ -27,7 +28,8 @@ provide(ActiveViewInj, activeView)
 provide(IsLockedInj, false)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
-provide('navDrawerOpen', ref(false))
+
+useProvideSmartsheetSidebar(meta, activeView)
 
 watch(
   () => tabMeta && tabMeta?.id,

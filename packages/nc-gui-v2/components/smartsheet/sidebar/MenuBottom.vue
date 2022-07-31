@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
+import { useSmartsheetSidebar } from './useSmartsheetSidebar'
 import { ref, useNuxtApp } from '#imports'
 import { viewIcons } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -8,11 +9,7 @@ import MdiHook from '~icons/mdi/hook'
 import MdiHeartsCard from '~icons/mdi/cards-heart'
 import MdiShieldLockOutline from '~icons/mdi/shield-lock-outline'
 
-interface Emits {
-  (event: 'openModal', data: { type: ViewTypes; title?: string }): void
-}
-
-const emits = defineEmits<Emits>()
+const { modalHook } = useSmartsheetSidebar()!
 
 const { $e } = useNuxtApp()
 
@@ -24,7 +21,7 @@ function onApiSnippet() {
 }
 
 function onOpenModal(type: ViewTypes, title = '') {
-  emits('openModal', { type, title })
+  modalHook.trigger({ isOpen: true, data: { type, title } })
 }
 </script>
 
