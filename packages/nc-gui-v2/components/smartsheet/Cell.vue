@@ -44,6 +44,7 @@ const {
   isString,
   isSingleSelect,
   isMultiSelect,
+  isPhoneNumber,
 } = useColumn(column)
 </script>
 
@@ -195,6 +196,7 @@ todo :
     <CellDuration v-else-if="isDuration" v-model="localState" />
     <CellEmail v-else-if="isEmail" v-model="localState" />
     <CellUrl v-else-if="isURL" v-model="localState" />
+    <CellPhoneNumber v-else-if="isPhoneNumber" v-model="localState" />
     <!-- v-on="parentListeners"
         />
     -->

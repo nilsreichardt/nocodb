@@ -30,6 +30,7 @@ export default (column: ColumnType) => {
   const isAttachment = uiDatatype === 'Attachment'
   const isRating = uiDatatype === UITypes.Rating
   const isCurrency = uiDatatype === 'Currency'
+  const isPhoneNumber = uiDatatype === 'PhoneNumber'
   const isDuration = uiDatatype === UITypes.Duration
   const isAutoSaved = [
     UITypes.SingleLineText,
@@ -72,5 +73,6 @@ export default (column: ColumnType) => {
     isManualSaved,
     isSingleSelect,
     isMultiSelect,
+    isPhoneNumber,
   }
 }
